@@ -1,22 +1,22 @@
 import { Container } from 'inversify';
-import { BookController } from '../components/book/controllers/book.controller';
-import { IBookService } from '../components/book/services/book.interface.service';
 import TYPES from '../constants/type';
-import { BookService } from '../components/book/services/book.services';
-import { UserService } from '../components/user/services/user.services';
-import { IUserService } from '../components/user/services/user.service.interface';
-import { UserController } from '../components/user/controllers/user.controller';
+import { BookController, BookService, IBookService } from '../components/book';
+import {
+  CategoryController,
+  CategoryService,
+  ICategoryService,
+} from '../components/category';
 
 const DiContainer = new Container();
 
 DiContainer.bind<IBookService>(TYPES.IBookService)
-	.to(BookService)
-	.inRequestScope();
-DiContainer.bind<IUserService>(TYPES.IUserService)
-	.to(UserService)
-	.inRequestScope();
+  .to(BookService)
+  .inRequestScope();
+DiContainer.bind<ICategoryService>(TYPES.ICategoryService)
+  .to(CategoryService)
+  .inRequestScope();
 
 DiContainer.bind<BookController>(BookController).toSelf();
-DiContainer.bind<UserController>(UserController).toSelf();
+DiContainer.bind<CategoryController>(CategoryController).toSelf();
 
 export default DiContainer;

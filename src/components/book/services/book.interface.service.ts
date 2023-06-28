@@ -1,15 +1,16 @@
 // type PagingType = (query: BookQueryCriteria) => Promise<IBook[]>
 
-import { BookResponse } from '../../../constants/response';
 import BookQueryCriteria from '../models/book-query.dto';
 import { PagedResponseModel } from '../../../interfaces/PagedResponseModel';
 import { IBookDto } from '../models/book.dto';
-import BookCreate from '../models/book-create.dto';
+import BookCreateUpdateDto from '../models/book-create.dto';
+import { IBook } from '../models/book.models';
 
 export interface IBookService {
-	get(): Promise<BookResponse>;
-	getByPaging(
-		query: BookQueryCriteria
-	): Promise<PagedResponseModel<IBookDto>>;
-	createBook(bookCreate: BookCreate): Promise<IBookDto>;
+  get(): Promise<IBook[]>;
+  getById(id: string): Promise<IBook>;
+  getByPaging(query: BookQueryCriteria): Promise<PagedResponseModel<IBookDto>>;
+  createBook(bookCreateDto: BookCreateUpdateDto): Promise<IBookDto>;
+  updateBook(id: string, bookUpdateDto: BookCreateUpdateDto): Promise<IBookDto>;
+  deleteBook(id: string): Promise<IBook>;
 }
