@@ -16,9 +16,11 @@ export class BookController {
 
   async get(req: express.Request, res: express.Response) {
     try {
-      const resp = await this.bookService.get();
+      const query: BookQueryCriteria = req.query;
 
-      res.status(200).json(resp);
+      const bookPaging = await this.bookService.getByPaging(query);
+
+      res.status(200).json(bookPaging);
     } catch (err) {
       res.status(500).json({
         error: {
@@ -32,7 +34,6 @@ export class BookController {
   async getById(req: express.Request, res: express.Response) {
     try {
       const { id } = req.params;
-      console.log(id);
       const resp = await this.bookService.getById(id);
 
       res.status(200).json(resp);
@@ -49,7 +50,6 @@ export class BookController {
   async getPaging(req: express.Request, res: express.Response) {
     try {
       const query: BookQueryCriteria = req.query;
-
       console.log(query);
 
       const bookPaging = await this.bookService.getByPaging(query);

@@ -29,7 +29,6 @@ export const bookPagingValidation: Schema = {
   categoryId: {
     in: ['query'],
     isString: true,
-    isMongoId: true,
     optional: true,
   },
 };

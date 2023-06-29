@@ -8,7 +8,7 @@ export class CategoryService implements ICategoryService {
   constructor() {}
   async get(): Promise<ICategory[]> {
     try {
-      const categories = await CategoryModel.find().exec();
+      const categories = await CategoryModel.find();
 
       return categories;
     } catch (err) {

@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import * as swaggerJSDoc from 'swagger-jsdoc';
 import YAML from 'yaml';
 import fs from 'fs';
+import cors from 'cors';
 
 import DIContainer from './config/inversify.config';
 import { validatorMiddleware } from './middlewares/validation.middleware';
@@ -38,6 +39,7 @@ class App {
   private middleware(): void {
     this.express.use(bodyParser.json() as RequestHandler);
     this.express.use(bodyParser.urlencoded({ extended: false }));
+    this.express.use(cors());
 
     this.express.use(
       (

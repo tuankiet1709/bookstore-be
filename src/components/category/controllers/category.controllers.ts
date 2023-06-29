@@ -4,6 +4,7 @@ import TYPES from '../../../constants/type';
 import express from 'express';
 import logger from '../../../utils/logger';
 import ApiError from '../../../middlewares/error-handling.middleware';
+import { ICategory } from '../models/category.models';
 
 @injectable()
 export class CategoryController {
@@ -17,7 +18,7 @@ export class CategoryController {
 
   public async get(req: express.Request, res: express.Response) {
     try {
-      const categories = await this.categoryService.get();
+      const categories: ICategory[] = await this.categoryService.get();
 
       res.status(200).json(categories);
     } catch (err) {

@@ -51,16 +51,17 @@ export class BookService implements IBookService {
   ): Promise<PagedResponseModel<IBookDto>> {
     const query = {
       search: bookQueryCriteria.search ?? '',
-      limit: bookQueryCriteria.limit ?? 12,
-      page: bookQueryCriteria.page ?? 1,
+      limit: bookQueryCriteria.limit ? Number(bookQueryCriteria.limit) : 12,
+      page: bookQueryCriteria.page ? Number(bookQueryCriteria.page) : 1,
       sortOrder: bookQueryCriteria.sortOrder ?? 1,
       sortColumn: bookQueryCriteria.sortColumn ?? '_id',
-      categoryID: bookQueryCriteria.categoryID,
+      categoryId: bookQueryCriteria.categoryId,
     } as BookQueryCriteria;
+
+    console.log(query);
 
     const bookFilter = await this.filter(query);
     const paged = await this.paging(query, bookFilter.match);
-
     const startRow = (await (paged.CurrentPage - 1)) * paged.PageSize;
 
     const books = await BookModel.aggregate([bookFilter.match, bookFilter.sort])
@@ -221,8 +222,8 @@ export class BookService implements IBookService {
     if (typeof query.search != 'undefined' && query.search) {
       filter.title = { $regex: query.search, $options: 'i' };
     }
-    if (query.categoryID) {
-      const cate = await CategoryModel.findById(query.categoryID).exec();
+    if (query.categoryId) {
+      const cate = await CategoryModel.findById(query.categoryId).exec();
       filter.category = cate._id;
     }
     const bookFilter = {
