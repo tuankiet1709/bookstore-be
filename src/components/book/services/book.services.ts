@@ -30,7 +30,7 @@ export class BookService implements IBookService {
 
   async getById(id: string) {
     try {
-      const book = await BookModel.findById(id).exec();
+      const book = await BookModel.findById(id).populate('category');
       if (!book) {
         throw new Error('Not found book');
       }
@@ -57,8 +57,6 @@ export class BookService implements IBookService {
       sortColumn: bookQueryCriteria.sortColumn ?? '_id',
       categoryId: bookQueryCriteria.categoryId,
     } as BookQueryCriteria;
-
-    console.log(query);
 
     const bookFilter = await this.filter(query);
     const paged = await this.paging(query, bookFilter.match);
@@ -218,7 +216,9 @@ export class BookService implements IBookService {
     const sort: any = {
       [query.sortColumn]: query.sortOrder,
     };
-    const filter: any = {};
+    const filter: any = {
+      isDelete: false,
+    };
     if (typeof query.search != 'undefined' && query.search) {
       filter.title = { $regex: query.search, $options: 'i' };
     }
