@@ -3,10 +3,10 @@
     "outDir": "dist",
     "sourceMap": true,
     // "noImplicitAny": true,
-    // "module": "commonjs",
+    "module": "commonjs",
+    "resolveJsonModule": true,
     "moduleResolution": "node",
-    "target": "es5",
-    // "allowJs": true,
+    "target": "es2016", // "allowJs": true,
     // "strict": true,
     "esModuleInterop": true,
     // "forceConsistentCasingInFileNames": true,
@@ -15,6 +15,8 @@
     "types": ["reflect-metadata", "node"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true
   }
 }

@@ -8,6 +8,7 @@ import { CategoryModel } from '../../category';
 import BookCreateUpdateDto from '../models/book-create.dto';
 import { PagedResponseModel } from '../../../interfaces/PagedResponseModel';
 import { PageModel } from '../../../interfaces/PagedModel';
+import ApiError from '../../../middlewares/error-handling.middleware';
 
 @injectable()
 export class BookService implements IBookService {
@@ -15,7 +16,6 @@ export class BookService implements IBookService {
   async get(): Promise<IBook[]> {
     try {
       const books = await BookModel.find();
-
       return books;
     } catch (err) {
       logger.error(`book: ${err}`);
@@ -49,49 +49,54 @@ export class BookService implements IBookService {
   async getByPaging(
     bookQueryCriteria: BookQueryCriteria,
   ): Promise<PagedResponseModel<IBookDto>> {
-    const query = {
-      search: bookQueryCriteria.search ?? '',
-      limit: bookQueryCriteria.limit ? Number(bookQueryCriteria.limit) : 12,
-      page: bookQueryCriteria.page ? Number(bookQueryCriteria.page) : 1,
-      sortOrder: bookQueryCriteria.sortOrder ?? 1,
-      sortColumn: bookQueryCriteria.sortColumn ?? '_id',
-      categoryId: bookQueryCriteria.categoryId,
-    } as BookQueryCriteria;
+    try {
+      const bookFilter = await this.filter(bookQueryCriteria);
+      const paged = await this.paging(bookQueryCriteria, bookFilter.match);
+      const startRow = (await (paged.CurrentPage - 1)) * paged.PageSize;
 
-    const bookFilter = await this.filter(query);
-    const paged = await this.paging(query, bookFilter.match);
-    const startRow = (await (paged.CurrentPage - 1)) * paged.PageSize;
+      const books = await BookModel.aggregate([
+        bookFilter.match,
+        bookFilter.sort,
+      ])
+        .skip(startRow)
+        .limit(paged.PageSize);
 
-    const books = await BookModel.aggregate([bookFilter.match, bookFilter.sort])
-      .skip(startRow)
-      .limit(paged.PageSize);
+      const bookByCategory = await BookModel.populate(books, {
+        path: 'category',
+      });
 
-    const bookByCategory = await BookModel.populate(books, {
-      path: 'category',
-    });
+      const booksDto: IBookDto[] = bookByCategory.map((book) => {
+        return {
+          id: book._id,
+          title: book.title,
+          image: book.image,
+          quantity: book.quantity,
+          price: book.price,
+          description: book.description,
+          author: book.author,
+          category: book.category,
+          isDelete: book.isDelete,
+        };
+      });
 
-    const booksDto: IBookDto[] = bookByCategory.map((book) => {
-      return {
-        id: book._id,
-        title: book.title,
-        image: book.image,
-        quantity: book.quantity,
-        price: book.price,
-        description: book.description,
-        author: book.author,
-        category: book.category,
-        isDelete: book.isDelete,
+      const PagedResponseModel: PagedResponseModel<IBookDto> = {
+        status: 'success',
+        totalItems: paged.TotalItems,
+        totalPages: paged.TotalPages,
+        currentPage: paged.CurrentPage,
+        items: booksDto,
       };
-    });
+      return PagedResponseModel;
+    } catch (err) {
+      logger.error(`GetBookByPaging: ${err}`);
 
-    const PagedResponseModel: PagedResponseModel<IBookDto> = {
-      status: 'success',
-      totalItems: paged.TotalItems,
-      totalPages: paged.TotalPages,
-      currentPage: paged.CurrentPage,
-      items: booksDto,
-    };
-    return PagedResponseModel;
+      return Promise.reject({
+        error: {
+          type: 'internal_server_error',
+          message: 'Internal Server Error',
+        },
+      });
+    }
   }
 
   async createBook(bookCreate: BookCreateUpdateDto): Promise<IBookDto> {
@@ -140,15 +145,18 @@ export class BookService implements IBookService {
   async updateBook(
     id: string,
     bookUpdateDto: BookCreateUpdateDto,
-  ): Promise<IBookDto> {
+  ): Promise<IBookDto | null> {
     try {
-      const currentBook: IBook = await BookModel.findById(id).exec();
+      const currentBook: IBook | null = await BookModel.findById(id);
+      if (!currentBook) {
+        throw new ApiError(401, 'Not Found Book');
+      }
       if (currentBook.category._id !== bookUpdateDto.category) {
         const categoryRef = await CategoryModel.findById(
           bookUpdateDto.category,
         );
         if (!categoryRef) {
-          throw new Error('there is no category found');
+          throw new Error('Not found category');
         } else {
           currentBook.category = categoryRef;
         }
@@ -162,20 +170,23 @@ export class BookService implements IBookService {
       currentBook.author = bookUpdateDto.author;
 
       const updatedBook = await BookModel.findByIdAndUpdate(id, currentBook);
+      if (updatedBook) {
+        const bookDto: IBookDto = {
+          id: updatedBook._id,
+          title: updatedBook.title,
+          image: updatedBook.image,
+          quantity: updatedBook.quantity,
+          price: updatedBook.price,
+          description: updatedBook.description,
+          author: updatedBook.author,
+          category: updatedBook.category,
+          isDelete: updatedBook.isDelete,
+        };
 
-      const bookDto: IBookDto = {
-        id: updatedBook._id,
-        title: updatedBook.title,
-        image: updatedBook.image,
-        quantity: updatedBook.quantity,
-        price: updatedBook.price,
-        description: updatedBook.description,
-        author: updatedBook.author,
-        category: updatedBook.category,
-        isDelete: updatedBook.isDelete,
-      };
+        return bookDto;
+      }
 
-      return bookDto;
+      return null;
     } catch (err) {
       logger.error(`UpdateBook: ${err}`);
 
@@ -188,11 +199,11 @@ export class BookService implements IBookService {
     }
   }
 
-  async deleteBook(id: string): Promise<IBook> {
+  async deleteBook(id: string): Promise<IBook | null> {
     try {
-      const currentBook: IBook = await BookModel.findById(id).exec();
+      const currentBook: IBook | null = await BookModel.findById(id);
       if (!currentBook) {
-        throw new Error('Not found BooK!');
+        throw new Error('Not found Book!');
       }
 
       const book = await BookModel.findByIdAndUpdate(id, {
@@ -202,7 +213,6 @@ export class BookService implements IBookService {
       return book;
     } catch (err) {
       logger.error(`RemoveBook: ${err}`);
-
       return Promise.reject({
         error: {
           type: 'internal_server_error',
@@ -223,8 +233,10 @@ export class BookService implements IBookService {
       filter.title = { $regex: query.search, $options: 'i' };
     }
     if (query.categoryId) {
-      const cate = await CategoryModel.findById(query.categoryId).exec();
-      filter.category = cate._id;
+      const cate = await CategoryModel.findById(query.categoryId);
+      if (cate) {
+        filter.category = cate._id;
+      }
     }
     const bookFilter = {
       match: { $match: filter },

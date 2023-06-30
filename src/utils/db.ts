@@ -9,14 +9,6 @@ require('dotenv').config();
 mongoose.Promise = global.Promise;
 mongoose.set('debug', process.env.DEBUG !== undefined);
 
-const opts = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  autoIndex: true,
-  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-};
-
 class MongoConnection {
   private static _instance: MongoConnection;
 
@@ -32,7 +24,7 @@ class MongoConnection {
   public async open(): Promise<void> {
     try {
       logger.debug('connecting to mongo db: ' + process.env.MONGO_URL);
-      await mongoose.connect(process.env.MONGO_URL as string, opts);
+      await mongoose.connect(process.env.MONGO_URL as string);
 
       mongoose.connection.on('connected', () => {
         logger.info('Mongo: connected');
@@ -46,9 +38,7 @@ class MongoConnection {
         logger.error(`Mongo:  ${String(err)}`);
         if (err.name === 'MongoNetworkError') {
           setTimeout(function () {
-            mongoose
-              .connect(process.env.MONGO_URL as string, opts)
-              .catch(() => {});
+            mongoose.connect(process.env.MONGO_URL as string).catch(() => {});
           }, 5000);
         }
       });

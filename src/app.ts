@@ -4,24 +4,15 @@ import { checkSchema } from 'express-validator';
 import morgan from 'morgan';
 import morganBody from 'morgan-body';
 import swaggerUi from 'swagger-ui-express';
-import * as swaggerJSDoc from 'swagger-jsdoc';
 import YAML from 'yaml';
 import fs from 'fs';
 import cors from 'cors';
 
-import DIContainer from './config/inversify.config';
-import { validatorMiddleware } from './middlewares/validation.middleware';
 import ApiError from './middlewares/error-handling.middleware';
 import logger from './utils/logger';
-import {
-  BookController,
-  bookCreateValidation,
-  bookDeleteValidation,
-  bookGetByIdValidation,
-  bookPagingValidation,
-  bookUpdateValidation,
-} from './components/book';
-import { CategoryController } from './components/category';
+import { categoryRoute } from './components/category/route/category.route';
+import { bookRoute } from './components/book/route/book.routes';
+import { cartRoute } from './components/cart/route/cart.routes';
 
 const path = require('path');
 const file = fs.readFileSync('openapi.yaml', 'utf8');
@@ -81,53 +72,13 @@ class App {
   }
 
   private routes(): void {
-    const bookController = DIContainer.resolve<BookController>(BookController);
-    const categoryController =
-      DIContainer.resolve<CategoryController>(CategoryController);
-
     this.express.use(
       '/api-docs',
       swaggerUi.serve,
       swaggerUi.setup(swaggerDocument),
     );
 
-    this.express.get(
-      '/category',
-      categoryController.get.bind(categoryController),
-    );
-    //  this.express.get('/book', bookController.get.bind(bookController));
-    this.express.get(
-      '/book',
-      checkSchema(bookPagingValidation),
-      validatorMiddleware(),
-      bookController.getPaging.bind(bookController),
-    );
-    this.express.get(
-      '/book/:id',
-      checkSchema(bookGetByIdValidation),
-      validatorMiddleware(),
-      bookController.getById.bind(bookController),
-    );
-    this.express.post(
-      '/book',
-      checkSchema(bookCreateValidation),
-      validatorMiddleware(),
-      bookController.createBook.bind(bookController),
-    );
-    this.express.put(
-      '/book/:id',
-      checkSchema(bookUpdateValidation),
-      validatorMiddleware(),
-      bookController.updateBook.bind(bookController),
-    );
-    this.express.delete(
-      '/book/:id',
-      checkSchema(bookDeleteValidation),
-      validatorMiddleware(),
-      bookController.deleteBook.bind(bookController),
-    );
-
-    // this.express.use("/api",[CategoryRoutes,bookRoute])
+    this.express.use('', [categoryRoute, bookRoute, cartRoute]);
     // this.express.get('/', (req, res, next) => {
     // 	res.sendFile(
     // 		path.join(__dirname, '../../client/dist/client/index.html')

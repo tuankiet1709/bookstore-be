@@ -8,19 +8,13 @@ import logger from '../../../utils/logger';
 
 @injectable()
 export class BookController {
-  private bookService: IBookService;
-
-  constructor(@inject(TYPES.IBookService) bookService: IBookService) {
-    this.bookService = bookService;
-  }
+  constructor(@inject(TYPES.IBookService) private bookService: IBookService) {}
 
   async get(req: express.Request, res: express.Response) {
     try {
-      const query: BookQueryCriteria = req.query;
+      const book = await this.bookService.get();
 
-      const bookPaging = await this.bookService.getByPaging(query);
-
-      res.status(200).json(bookPaging);
+      res.status(200).json(book);
     } catch (err) {
       res.status(500).json({
         error: {
@@ -34,6 +28,8 @@ export class BookController {
   async getById(req: express.Request, res: express.Response) {
     try {
       const { id } = req.params;
+
+      logger.info('Get book by Id');
       const resp = await this.bookService.getById(id);
 
       res.status(200).json(resp);
@@ -49,14 +45,29 @@ export class BookController {
 
   async getPaging(req: express.Request, res: express.Response) {
     try {
-      const query: BookQueryCriteria = req.query;
-      console.log(query);
+      const { search, limit, page, sortOrder, sortColumn, categoryId } =
+        req.query;
 
+      const query: BookQueryCriteria = {
+        search: search ?? '',
+        limit: limit ? Number(limit) : 12,
+        page: page ? Number(page) : 1,
+        sortOrder: sortOrder ?? 1,
+        sortColumn: sortColumn ?? '_id',
+        categoryId: categoryId,
+      } as BookQueryCriteria;
+
+      logger.info('Get books by pagination');
       const bookPaging = await this.bookService.getByPaging(query);
 
       res.status(200).json(bookPaging);
     } catch (err) {
-      res.status(503).send(err);
+      res.status(500).json({
+        error: {
+          type: 'internal_server_error',
+          message: 'Internal Server Error',
+        },
+      });
     }
   }
 
@@ -69,7 +80,12 @@ export class BookController {
 
       res.status(200).json(newBook);
     } catch (err) {
-      res.status(503).send(err);
+      res.status(500).json({
+        error: {
+          type: 'internal_server_error',
+          message: 'Internal Server Error',
+        },
+      });
     }
   }
 
@@ -83,7 +99,12 @@ export class BookController {
 
       res.status(200).json(updatedBook);
     } catch (err) {
-      res.status(503).send(err);
+      res.status(500).json({
+        error: {
+          type: 'internal_server_error',
+          message: 'Internal Server Error',
+        },
+      });
     }
   }
 
@@ -96,7 +117,12 @@ export class BookController {
 
       res.status(200).json({ message: 'Remove book successfully' });
     } catch (err) {
-      res.status(503).send(err);
+      res.status(500).json({
+        error: {
+          type: 'internal_server_error',
+          message: 'Internal Server Error',
+        },
+      });
     }
   }
 }

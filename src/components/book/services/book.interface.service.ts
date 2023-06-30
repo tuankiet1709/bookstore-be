@@ -11,6 +11,9 @@ export interface IBookService {
   getById(id: string): Promise<IBook>;
   getByPaging(query: BookQueryCriteria): Promise<PagedResponseModel<IBookDto>>;
   createBook(bookCreateDto: BookCreateUpdateDto): Promise<IBookDto>;
-  updateBook(id: string, bookUpdateDto: BookCreateUpdateDto): Promise<IBookDto>;
-  deleteBook(id: string): Promise<IBook>;
+  updateBook(
+    id: string,
+    bookUpdateDto: BookCreateUpdateDto,
+  ): Promise<IBookDto | null>;
+  deleteBook(id: string): Promise<IBook | null>;
 }
