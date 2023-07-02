@@ -6,4 +6,6 @@ export interface ICartService {
   addToCart(cartCreateDto: ICartCreateDto): Promise<any>;
   updateQuantity(id: string, quantity: number): Promise<any>;
   removeFromCart(id: string): Promise<any>;
+  clearCart(email: string): Promise<any>;
+  checkoutCart(email: string): Promise<any>;
 }

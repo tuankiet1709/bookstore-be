@@ -1,6 +1,5 @@
 import bodyParser from 'body-parser';
 import express, { RequestHandler } from 'express';
-import { checkSchema } from 'express-validator';
 import morgan from 'morgan';
 import morganBody from 'morgan-body';
 import swaggerUi from 'swagger-ui-express';
@@ -47,25 +46,10 @@ class App {
       },
     );
 
-    // // morgan.token('body', (req: express.Request, res: express.Response) => JSON.stringify(req.body));
-    // // this.express.use(morgan(':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'));
-
-    // /* istanbul ignore next */
-    // if (config.morganLogger) {
-    // 	this.express.use(
-    // 		morgan(
-    // 			':method :url :status :response-time ms - :res[content-length]'
-    // 		)
-    // 	);
-    // }
-    // /* istanbul ignore next */
-    // if (config.morganBodyLogger) {
-    // 	morganBody(this.express);
-    // }
-    // /* istanbul ignore next */
-    // if (config.exmpleDevLogger) {
-    // 	this.express.use(expressDevLogger);
-    // }
+    this.express.use(
+      morgan(':method :url :status :response-time ms - :res[content-length]'),
+    );
+    // morganBody(this.express);
     // this.express.use(
     // 	express.static(path.join(__dirname, '../../client/dist/client'))
     // );
@@ -84,7 +68,7 @@ class App {
     // 		path.join(__dirname, '../../client/dist/client/index.html')
     // 	);
     // });
-    this.express.use('*', (req, res, next) => {
+    this.express.use((req, res, next) => {
       res.send('Make sure url is correctly!!!');
     });
   }

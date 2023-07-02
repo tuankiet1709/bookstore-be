@@ -22,6 +22,7 @@ class MongoConnection {
   }
 
   public async open(): Promise<void> {
+    logger.info(process.env.MONGO_URL);
     try {
       logger.debug('connecting to mongo db: ' + process.env.MONGO_URL);
       await mongoose.connect(process.env.MONGO_URL as string);

@@ -62,14 +62,45 @@ export class CartController {
     }
   }
 
+  async clearCart(req: express.Request, res: express.Response) {
+    try {
+      console.log('clear');
+      const { email } = req.query;
+
+      logger.info('Remove item from cart');
+      await this.cartService.clearCart(String(email));
+
+      res.status(200).json({ message: 'Remove item from cart successfully' });
+    } catch (err) {
+      res.status(503).send(err);
+    }
+  }
+
   async deleteItem(req: express.Request, res: express.Response) {
     try {
+      console.log('test');
       const { id } = req.params;
 
       logger.info('Remove item from cart');
       await this.cartService.removeFromCart(id);
 
       res.status(200).json({ message: 'Remove item from cart successfully' });
+    } catch (err) {
+      res.status(503).send(err);
+    }
+  }
+
+  async checkout(req: express.Request, res: express.Response) {
+    try {
+      console.log('checkout');
+      const { email } = req.query;
+      console.log('req', req.query);
+      console.log(email);
+
+      logger.info('Checkout');
+      await this.cartService.checkoutCart(String(email));
+
+      res.status(200).json({ message: 'Checkout successfully' });
     } catch (err) {
       res.status(503).send(err);
     }

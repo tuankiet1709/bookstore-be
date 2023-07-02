@@ -1,15 +1,17 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import logger from '../../../utils/logger';
 import { ICartService } from './cart.interface.service';
 import { CartModel, ICart } from '../models/cart.models';
 import { ICartCreateDto } from '../models/cart-create.model';
-import { BookModel } from '../../book';
+import { BookModel, IBookService } from '../../book';
 import ApiError from '../../../middlewares/error-handling.middleware';
 import { ICartDto } from '../models/cartDto.model';
+import TYPES from '../../../constants/type';
+import BookCreateUpdateDto from '../../book/models/book-create.dto';
 
 @injectable()
 export class CartService implements ICartService {
-  constructor() {}
+  constructor(@inject(TYPES.IBookService) private bookService: IBookService) {}
   async get(email: string): Promise<ICartDto[]> {
     try {
       console.log(email);
@@ -88,6 +90,66 @@ export class CartService implements ICartService {
       return await CartModel.findByIdAndDelete(id);
     } catch (err) {
       logger.error(`Add quantity: ${err}`);
+      return Promise.reject({
+        error: {
+          type: 'internal_server_error',
+          message: 'Internal Server Error',
+        },
+      });
+    }
+  }
+
+  async clearCart(email: string): Promise<any> {
+    try {
+      console.log(email);
+      return await CartModel.deleteMany({ user: email });
+    } catch (err) {
+      logger.error(`Clear cart: ${err}`);
+      return Promise.reject({
+        error: {
+          type: 'internal_server_error',
+          message: 'Internal Server Error',
+        },
+      });
+    }
+  }
+
+  async checkoutCart(email: string): Promise<any> {
+    try {
+      const cart = await CartModel.find({ user: email }).populate('product');
+
+      const session = await CartModel.startSession();
+      session.startTransaction();
+
+      try {
+        const updatePromises = cart.map(async (cartItem) => {
+          const book = await this.bookService.getById(cartItem.product._id);
+          const bookUpdateDto: BookCreateUpdateDto = {
+            ...cartItem.product,
+            category: cartItem.product.category._id,
+            quantity: book.quantity - cartItem.quantity,
+          };
+          return this.bookService.updateBook(
+            cartItem.product._id,
+            bookUpdateDto,
+          );
+        });
+
+        await Promise.all(updatePromises);
+
+        const result = await CartModel.deleteMany({ user: email });
+
+        await session.commitTransaction();
+
+        return result;
+      } catch (error) {
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        session.endSession();
+      }
+    } catch (err) {
+      logger.error(`Clear cart: ${err}`);
       return Promise.reject({
         error: {
           type: 'internal_server_error',

@@ -12,4 +12,6 @@ cartRoute.put(
   '/cart/:id',
   cartController.updateCartQuantity.bind(cartController),
 );
+cartRoute.post('/cart/checkout', cartController.checkout.bind(cartController));
+cartRoute.delete('/cart/clear', cartController.clearCart.bind(cartController));
 cartRoute.delete('/cart/:id', cartController.deleteItem.bind(cartController));
