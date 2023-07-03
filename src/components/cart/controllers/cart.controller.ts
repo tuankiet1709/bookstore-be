@@ -9,17 +9,11 @@ import { ICartDto } from '../models/cartDto.model';
 
 @injectable()
 export class CartController {
-  private cartService: ICartService;
-
-  constructor(@inject(TYPES.ICartService) cartService: ICartService) {
-    this.cartService = cartService;
-  }
+  constructor(@inject(TYPES.ICartService) private cartService: ICartService) {}
 
   public async get(req: express.Request, res: express.Response) {
     try {
       const { email } = req.query;
-
-      console.log(req.query);
 
       logger.info('Get cart');
       const cart: ICartDto[] = await this.cartService.get(String(email));
@@ -34,7 +28,6 @@ export class CartController {
   async addToCart(req: express.Request, res: express.Response) {
     try {
       const cartCreateDto: ICartCreateDto = req.body;
-      console.log(cartCreateDto);
 
       logger.info('Add to cart');
       const newCart = await this.cartService.addToCart(cartCreateDto);
@@ -64,7 +57,6 @@ export class CartController {
 
   async clearCart(req: express.Request, res: express.Response) {
     try {
-      console.log('clear');
       const { email } = req.query;
 
       logger.info('Remove item from cart');
@@ -78,7 +70,6 @@ export class CartController {
 
   async deleteItem(req: express.Request, res: express.Response) {
     try {
-      console.log('test');
       const { id } = req.params;
 
       logger.info('Remove item from cart');
@@ -92,10 +83,7 @@ export class CartController {
 
   async checkout(req: express.Request, res: express.Response) {
     try {
-      console.log('checkout');
       const { email } = req.query;
-      console.log('req', req.query);
-      console.log(email);
 
       logger.info('Checkout');
       await this.cartService.checkoutCart(String(email));

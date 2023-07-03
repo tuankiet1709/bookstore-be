@@ -14,7 +14,6 @@ export class CartService implements ICartService {
   constructor(@inject(TYPES.IBookService) private bookService: IBookService) {}
   async get(email: string): Promise<ICartDto[]> {
     try {
-      console.log(email);
       const cart: ICart[] = await CartModel.find({ user: email }).populate(
         'product',
         '_id title price image',
@@ -70,7 +69,6 @@ export class CartService implements ICartService {
 
   async updateQuantity(id: string, quantity: number): Promise<any> {
     try {
-      console.log(id);
       return await CartModel.findByIdAndUpdate(id, {
         quantity: quantity,
       });
@@ -89,7 +87,7 @@ export class CartService implements ICartService {
     try {
       return await CartModel.findByIdAndDelete(id);
     } catch (err) {
-      logger.error(`Add quantity: ${err}`);
+      logger.error(`Remove quantity: ${err}`);
       return Promise.reject({
         error: {
           type: 'internal_server_error',
@@ -101,7 +99,6 @@ export class CartService implements ICartService {
 
   async clearCart(email: string): Promise<any> {
     try {
-      console.log(email);
       return await CartModel.deleteMany({ user: email });
     } catch (err) {
       logger.error(`Clear cart: ${err}`);

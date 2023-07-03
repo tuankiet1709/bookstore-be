@@ -27,8 +27,8 @@ class App {
   }
 
   private middleware(): void {
-    this.express.use(bodyParser.json() as RequestHandler);
-    this.express.use(bodyParser.urlencoded({ extended: false }));
+    this.express.use(express.json() as RequestHandler);
+    this.express.use(express.urlencoded({ extended: false }));
     this.express.use(cors());
 
     this.express.use(
@@ -49,10 +49,10 @@ class App {
     this.express.use(
       morgan(':method :url :status :response-time ms - :res[content-length]'),
     );
-    // morganBody(this.express);
-    // this.express.use(
-    // 	express.static(path.join(__dirname, '../../client/dist/client'))
-    // );
+    morganBody(this.express);
+    this.express.use(
+      express.static(path.join(__dirname, '../../client/dist/client')),
+    );
   }
 
   private routes(): void {
@@ -61,13 +61,7 @@ class App {
       swaggerUi.serve,
       swaggerUi.setup(swaggerDocument),
     );
-
     this.express.use('', [categoryRoute, bookRoute, cartRoute]);
-    // this.express.get('/', (req, res, next) => {
-    // 	res.sendFile(
-    // 		path.join(__dirname, '../../client/dist/client/index.html')
-    // 	);
-    // });
     this.express.use((req, res, next) => {
       res.send('Make sure url is correctly!!!');
     });

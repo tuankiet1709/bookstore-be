@@ -67,15 +67,8 @@ export class BookService implements IBookService {
 
       const booksDto: IBookDto[] = bookByCategory.map((book) => {
         return {
+          ...book,
           id: book._id,
-          title: book.title,
-          image: book.image,
-          quantity: book.quantity,
-          price: book.price,
-          description: book.description,
-          author: book.author,
-          category: book.category,
-          isDelete: book.isDelete,
         };
       });
 
@@ -118,15 +111,8 @@ export class BookService implements IBookService {
 
       const book = await BookModel.create(newBook);
       const bookDto: IBookDto = {
+        ...book,
         id: book._id,
-        title: book.title,
-        image: book.image,
-        quantity: book.quantity,
-        price: book.price,
-        description: book.description,
-        author: book.author,
-        category: book.category,
-        isDelete: book.isDelete,
       };
 
       return bookDto;
@@ -172,15 +158,8 @@ export class BookService implements IBookService {
       const updatedBook = await BookModel.findByIdAndUpdate(id, currentBook);
       if (updatedBook) {
         const bookDto: IBookDto = {
+          ...updatedBook,
           id: updatedBook._id,
-          title: updatedBook.title,
-          image: updatedBook.image,
-          quantity: updatedBook.quantity,
-          price: updatedBook.price,
-          description: updatedBook.description,
-          author: updatedBook.author,
-          category: updatedBook.category,
-          isDelete: updatedBook.isDelete,
         };
 
         return bookDto;

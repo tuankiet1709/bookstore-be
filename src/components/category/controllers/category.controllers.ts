@@ -8,13 +8,9 @@ import { ICategory } from '../models/category.models';
 
 @injectable()
 export class CategoryController {
-  private categoryService: ICategoryService;
-
   constructor(
-    @inject(TYPES.ICategoryService) categoryService: ICategoryService,
-  ) {
-    this.categoryService = categoryService;
-  }
+    @inject(TYPES.ICategoryService) private categoryService: ICategoryService,
+  ) {}
 
   public async get(req: express.Request, res: express.Response) {
     try {
