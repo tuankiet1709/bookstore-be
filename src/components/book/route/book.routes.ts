@@ -15,31 +15,31 @@ export const bookRoute = express.Router();
 const bookController = DIContainer.resolve<BookController>(BookController);
 
 bookRoute.get(
-  '/book',
+  '/books',
   checkSchema(bookPagingValidation),
   validatorMiddleware(),
   bookController.getPaging.bind(bookController),
 );
 bookRoute.get(
-  '/book/:id',
+  '/books/:id',
   checkSchema(bookGetByIdValidation),
   validatorMiddleware(),
   bookController.getById.bind(bookController),
 );
 bookRoute.post(
-  '/book',
+  '/books',
   checkSchema(bookCreateValidation),
   validatorMiddleware(),
   bookController.createBook.bind(bookController),
 );
 bookRoute.put(
-  '/book/:id',
+  '/books/:id',
   checkSchema(bookUpdateValidation),
   validatorMiddleware(),
   bookController.updateBook.bind(bookController),
 );
 bookRoute.delete(
-  '/book/:id',
+  '/books/:id',
   checkSchema(bookDeleteValidation),
   validatorMiddleware(),
   bookController.deleteBook.bind(bookController),

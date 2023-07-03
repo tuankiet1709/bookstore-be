@@ -7,10 +7,10 @@ tags:
     description: Book in the bookstore
   - name: Category
     description: Category of book
-  - name: User
-    description: Operations about user
+  - name: Cart
+    description: Operations about cart
 paths:
-  /book:
+  /books:
     get:
       tags:
         - Book
@@ -63,7 +63,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Book'     
-        '405':
+        '500':
           description: Internal Server Error
     post:
       tags:
@@ -84,9 +84,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Book'
-        '405':
+        '500':
           description: Internal Server Error
-  /book/{id}:
+  /books/{id}:
     get:
       tags:
         - Book
@@ -110,7 +110,7 @@ paths:
           description: Invalid ID
         '404':
           description: Book not found
-        '405':
+        '500':
           description: Internal Server Error
     put:
       tags:
@@ -139,10 +139,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Book'
         '400':
-          description: Invalid ID
+          description: Invalid Id
         '404':
           description: Book not found
-        '405':
+        '500':
           description: Internal Server Error
     delete:
       tags:
@@ -159,9 +159,10 @@ paths:
             format: int64
       responses:
         '400':
-          description: Invalid pet value
-          
-  /category:
+          description: Invalid Id
+        '404':
+          description: Book not found
+  /categories:
     get:
       tags:
         - Category
@@ -176,7 +177,150 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Category'     
-        '405':
+        '500':
+          description: Internal Server Error
+  /cart:
+    get:
+      tags:
+        - Cart
+      summary: Get cart
+      description: Get cart of user
+      operationId: getCart
+      parameters:
+        - name: email
+          in: query
+          description: email of user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cart'     
+        '500':
+          description: Internal Server Error
+    post:
+      tags:
+        - Cart
+      summary: Add to cart
+      description: 'Add to cart'
+      requestBody:
+        description: Add to cart
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '500':
+          description: Internal Server Error
+  /cart/{id}:
+    put:
+      tags:
+        - Cart
+      summary: Update quantity for item in cart
+      description: Update quantity for item in cart
+      parameters:
+        - name: id
+          in: path
+          description: cart id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Update quantity of cart item
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: number
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: Invalid Id
+        '404':
+          description: Cart Item not found
+        '500':
+          description: Internal Server Error
+    delete:
+      tags:
+        - Cart
+      summary: Delete item from cart
+      description: Delete item from cart
+      parameters:
+        - name: id
+          in: path
+          description: cart id to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '400':
+          description: Invalid Id
+        '404':
+          description: Cart Item not found
+  /cart/checkout:
+    post:
+      tags:
+        - Cart
+      summary: checkout
+      description: 'Checkout'
+      parameters:
+        - name: email
+          in: query
+          description: email of user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '500':
+          description: Internal Server Error
+  /cart/clear:
+    delete:
+      tags:
+        - Cart
+      summary: Clear Cart
+      description: 'Clear Cart'
+      parameters:
+        - name: email
+          in: query
+          description: email of user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '500':
           description: Internal Server Error
 components:
   schemas:
@@ -237,6 +381,31 @@ components:
           type: string
       xml:
         name: '##default'
+    Cart:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '649b98e6b2b0c5d6a762a13e'
+        productId:
+          type: string
+          example: '649b98e6b2b0c5d6a762a13e'
+        productImage:
+          type: string
+          example: 'image'
+        name:
+          type: string
+          example: 'name'
+        quantity:
+          type: integer
+          format: int32
+          example: 1
+        price:
+          type: integer
+          format: int32
+          example: 1
+      xml:
+        name: cart
     BookCreateUpdate:
       type: object
       required:
@@ -272,6 +441,25 @@ components:
           example: '649b98e6b2b0c5d6a762a13e'
       xml:
         name: book
+    CartCreate:
+      type: object
+      required:
+        - product
+        - quantity
+        - user
+      properties:
+        product:
+          type: string
+          example: 'product'
+        quantity:
+          type: integer
+          format: int32
+          example: 1
+        user:
+          type: string
+          example: 'user'
+      xml:
+        name: cart
   requestBodies:
     BookCreateUpdate:
       description: Pet object that needs to be added to the store

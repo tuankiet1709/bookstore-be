@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
 import { IBookService } from '../services/book.interface.service';
-import express from 'express';
+import express, { NextFunction } from 'express';
 import TYPES from '../../../constants/type';
 import BookQueryCriteria from '../models/book-query.dto';
 import BookCreateUpdateDto from '../models/book-create.dto';
@@ -10,22 +10,22 @@ import logger from '../../../utils/logger';
 export class BookController {
   constructor(@inject(TYPES.IBookService) private bookService: IBookService) {}
 
-  async get(req: express.Request, res: express.Response) {
+  async get(req: express.Request, res: express.Response, next: NextFunction) {
     try {
       const book = await this.bookService.get();
 
       res.status(200).json(book);
     } catch (err) {
-      res.status(500).json({
-        error: {
-          type: 'internal_server_error',
-          message: 'Internal Server Error',
-        },
-      });
+      logger.error(`get: ${err}`);
+      next(err);
     }
   }
 
-  async getById(req: express.Request, res: express.Response) {
+  async getById(
+    req: express.Request,
+    res: express.Response,
+    next: NextFunction,
+  ) {
     try {
       const { id } = req.params;
 
@@ -34,16 +34,16 @@ export class BookController {
 
       res.status(200).json(resp);
     } catch (err) {
-      res.status(500).json({
-        error: {
-          type: 'internal_server_error',
-          message: 'Internal Server Error',
-        },
-      });
+      logger.error(`Get Book By Id: ${err}`);
+      next(err);
     }
   }
 
-  async getPaging(req: express.Request, res: express.Response) {
+  async getPaging(
+    req: express.Request,
+    res: express.Response,
+    next: NextFunction,
+  ) {
     try {
       const { search, limit, page, sortOrder, sortColumn, categoryId } =
         req.query;
@@ -62,16 +62,16 @@ export class BookController {
 
       res.status(200).json(bookPaging);
     } catch (err) {
-      res.status(500).json({
-        error: {
-          type: 'internal_server_error',
-          message: 'Internal Server Error',
-        },
-      });
+      logger.error(`Get Book By Paging: ${err}`);
+      next(err);
     }
   }
 
-  async createBook(req: express.Request, res: express.Response) {
+  async createBook(
+    req: express.Request,
+    res: express.Response,
+    next: NextFunction,
+  ) {
     try {
       const bookParams: BookCreateUpdateDto = req.body;
 
@@ -80,16 +80,16 @@ export class BookController {
 
       res.status(200).json(newBook);
     } catch (err) {
-      res.status(500).json({
-        error: {
-          type: 'internal_server_error',
-          message: 'Internal Server Error',
-        },
-      });
+      logger.error(`Create Book: ${err}`);
+      next(err);
     }
   }
 
-  async updateBook(req: express.Request, res: express.Response) {
+  async updateBook(
+    req: express.Request,
+    res: express.Response,
+    next: NextFunction,
+  ) {
     try {
       const { id } = req.params;
       const bookParams: BookCreateUpdateDto = req.body;
@@ -99,16 +99,16 @@ export class BookController {
 
       res.status(200).json(updatedBook);
     } catch (err) {
-      res.status(500).json({
-        error: {
-          type: 'internal_server_error',
-          message: 'Internal Server Error',
-        },
-      });
+      logger.error(`Update book: ${err}`);
+      next(err);
     }
   }
 
-  async deleteBook(req: express.Request, res: express.Response) {
+  async deleteBook(
+    req: express.Request,
+    res: express.Response,
+    next: NextFunction,
+  ) {
     try {
       const { id } = req.params;
 
@@ -117,12 +117,8 @@ export class BookController {
 
       res.status(200).json({ message: 'Remove book successfully' });
     } catch (err) {
-      res.status(500).json({
-        error: {
-          type: 'internal_server_error',
-          message: 'Internal Server Error',
-        },
-      });
+      logger.error(`Delete book: ${err}`);
+      next(err);
     }
   }
 }

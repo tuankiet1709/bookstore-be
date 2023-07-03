@@ -6,4 +6,7 @@ const categoryController =
   DIContainer.resolve<CategoryController>(CategoryController);
 export const categoryRoute = express.Router();
 
-categoryRoute.get('/category', categoryController.get.bind(categoryController));
+categoryRoute.get(
+  '/categories',
+  categoryController.get.bind(categoryController),
+);

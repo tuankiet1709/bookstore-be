@@ -1,4 +1,3 @@
-import bodyParser from 'body-parser';
 import express, { RequestHandler } from 'express';
 import morgan from 'morgan';
 import morganBody from 'morgan-body';
@@ -13,7 +12,6 @@ import { categoryRoute } from './components/category/route/category.route';
 import { bookRoute } from './components/book/route/book.routes';
 import { cartRoute } from './components/cart/route/cart.routes';
 
-const path = require('path');
 const file = fs.readFileSync('openapi.yaml', 'utf8');
 const swaggerDocument = YAML.parse(file);
 
@@ -48,10 +46,6 @@ class App {
 
     this.express.use(
       morgan(':method :url :status :response-time ms - :res[content-length]'),
-    );
-    morganBody(this.express);
-    this.express.use(
-      express.static(path.join(__dirname, '../../client/dist/client')),
     );
   }
 

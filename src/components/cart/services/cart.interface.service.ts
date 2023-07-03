@@ -1,5 +1,5 @@
 import { ICartCreateDto } from '../models/cart-create.model';
-import { ICartDto } from '../models/cartDto.model';
+import { ICartDto } from '../models/cart-dto.model';
 
 export interface ICartService {
   get(email: string): Promise<ICartDto[]>;

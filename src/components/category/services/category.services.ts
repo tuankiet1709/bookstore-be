@@ -7,18 +7,8 @@ import logger from '../../../utils/logger';
 export class CategoryService implements ICategoryService {
   constructor() {}
   async get(): Promise<ICategory[]> {
-    try {
-      const categories = await CategoryModel.find();
+    const categories = await CategoryModel.find();
 
-      return categories;
-    } catch (err) {
-      logger.error(`category: ${err}`);
-      return Promise.reject({
-        error: {
-          type: 'internal_server_error',
-          message: 'Internal Server Error',
-        },
-      });
-    }
+    return categories;
   }
 }
