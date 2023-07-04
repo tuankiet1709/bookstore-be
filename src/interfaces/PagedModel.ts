@@ -1,8 +1,8 @@
 export interface PageModel<T> {
-  MaxPageSize: number;
-  PageSize: number;
-  CurrentPage: number;
-  TotalItems: number;
-  TotalPages: number;
-  Items: T[];
+  maxPageSize: number;
+  pageSize: number;
+  currentPage: number;
+  totalItems: number;
+  totalPages: number;
+  items: T[];
 }

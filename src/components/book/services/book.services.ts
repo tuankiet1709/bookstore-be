@@ -30,11 +30,11 @@ export class BookService implements IBookService {
   ): Promise<PagedResponseModel<IBookDto>> {
     const bookFilter = await this.filter(bookQueryCriteria);
     const paged = await this.paging(bookQueryCriteria, bookFilter.match);
-    const startRow = (await (paged.CurrentPage - 1)) * paged.PageSize;
+    const startRow = (await (paged.currentPage - 1)) * paged.pageSize;
 
     const books = await BookModel.aggregate([bookFilter.match, bookFilter.sort])
       .skip(startRow)
-      .limit(paged.PageSize);
+      .limit(paged.pageSize);
 
     const bookByCategory = await BookModel.populate(books, {
       path: 'category',
@@ -49,9 +49,9 @@ export class BookService implements IBookService {
 
     const PagedResponseModel: PagedResponseModel<IBookDto> = {
       status: 'success',
-      totalItems: paged.TotalItems,
-      totalPages: paged.TotalPages,
-      currentPage: paged.CurrentPage,
+      totalItems: paged.totalItems,
+      totalPages: paged.totalPages,
+      currentPage: paged.currentPage,
       items: booksDto,
     };
     return PagedResponseModel;
@@ -161,14 +161,14 @@ export class BookService implements IBookService {
   ): Promise<PageModel<IBook>> {
     const paged = {} as PageModel<IBook>;
 
-    paged.CurrentPage = query.page < 0 ? 1 : query.page;
-    paged.PageSize = query.limit || 12;
+    paged.currentPage = query.page < 0 ? 1 : query.page;
+    paged.pageSize = query.limit || 12;
 
-    paged.TotalItems = await BookModel.countDocuments({
+    paged.totalItems = await BookModel.countDocuments({
       $and: [filter.$match],
     });
 
-    paged.TotalPages = Math.ceil(paged.TotalItems / paged.PageSize);
+    paged.totalPages = Math.ceil(paged.totalItems / paged.pageSize);
     return paged;
   }
 }
