@@ -1,18 +1,20 @@
-# Stage 1: Build TypeScript
+# Stage 1: Install dependencies
 FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
-COPY . .
+
+# Stage 2: Build the application
+FROM node:18-alpine AS final
+WORKDIR /app
+COPY --from=builder /app .
 RUN npm run build
 
 # Stage 2: Create production image
 FROM node:18-alpine
 WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY /app/openapi.yaml ./openapi.yaml
-ENV NODE_ENV=production
-EXPOSE 3000
+COPY --from=final /app/dist ./dist
+COPY --from=final /app/openapi.yaml ./openapi.yaml
+COPY --from=final /app/node_modules ./node_modules
 
 CMD [ "node", "./dist/index.js" ]

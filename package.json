@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.ts",
-    "build": "tsc",
+    "build": "tsc -p .",
     "start:prod": "node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "ts-node ./src/data/dbContext"
