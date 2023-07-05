@@ -11,7 +11,6 @@ import { bookUpdateValidation } from '../validations/book-update.validation';
 import { bookDeleteValidation } from '../validations/book-delete.validation';
 
 export const bookRoute = express.Router();
-
 const bookController = DIContainer.resolve<BookController>(BookController);
 
 bookRoute.get(

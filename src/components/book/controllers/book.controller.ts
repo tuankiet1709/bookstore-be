@@ -73,7 +73,18 @@ export class BookController {
     next: NextFunction,
   ) {
     try {
-      const bookParams: BookCreateUpdateDto = req.body;
+      const { title, image, quantity, price, author, description, category } =
+        req.body;
+
+      const bookParams: BookCreateUpdateDto = {
+        title,
+        image,
+        author,
+        description,
+        category,
+        quantity: Number(quantity),
+        price: Number(price),
+      };
 
       logger.info('Create a new book');
       const newBook = await this.bookService.createBook(bookParams);
@@ -92,7 +103,18 @@ export class BookController {
   ) {
     try {
       const { id } = req.params;
-      const bookParams: BookCreateUpdateDto = req.body;
+      const { title, image, quantity, price, author, description, category } =
+        req.body;
+
+      const bookParams: BookCreateUpdateDto = {
+        title,
+        image,
+        author,
+        description,
+        category,
+        quantity: Number(quantity),
+        price: Number(price),
+      };
 
       logger.info('Update a new book');
       const updatedBook = await this.bookService.updateBook(id, bookParams);

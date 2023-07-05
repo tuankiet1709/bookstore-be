@@ -11,7 +11,6 @@ import logger from './utils/logger';
 import { categoryRoute } from './components/category/route/category.route';
 import { bookRoute } from './components/book/route/book.routes';
 import { cartRoute } from './components/cart/route/cart.routes';
-
 const file = fs.readFileSync('openapi.yaml', 'utf8');
 const swaggerDocument = YAML.parse(file);
 

@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { IBookService } from './book.interface.service';
 import { BookModel, IBook } from '../models/book.models';
 import BookQueryCriteria from '../models/book-query.dto';
@@ -8,10 +8,26 @@ import BookCreateUpdateDto from '../models/book-create.dto';
 import { PagedResponseModel } from '../../../interfaces/PagedResponseModel';
 import { PageModel } from '../../../interfaces/PagedModel';
 import ApiError from '../../../middlewares/error-handling.middleware';
+import TYPES from '../../../constants/type';
+import { IKafkaService } from '../../kafka/services/kafka.interface.service';
+import { ISchemaRegistryService } from '../../schema-registry/services/schema-registry.interface.service';
+import { SchemaRegistry, readAVSC } from '@kafkajs/confluent-schema-registry';
+import fs from 'fs';
+import * as path from 'path';
+
+const registry = new SchemaRegistry({
+  host: 'http://localhost:8081',
+});
 
 @injectable()
 export class BookService implements IBookService {
-  constructor() {}
+  constructor(
+    @inject(TYPES.IKafkaService) private kafkaService: IKafkaService,
+    @inject(TYPES.ISchemaRegistryService)
+    private schemaRegistryService: ISchemaRegistryService,
+  ) {
+    this.kafkaService.connect();
+  }
   async get(): Promise<IBook[]> {
     const books = await BookModel.find();
     return books;
@@ -58,6 +74,17 @@ export class BookService implements IBookService {
   }
 
   async createBook(bookCreate: BookCreateUpdateDto): Promise<IBookDto> {
+    const filePath = path.join(__dirname, '../avro/book-create.avsc');
+    const schema = readAVSC(filePath);
+    const registryId = await this.schemaRegistryService.getSchemaRegistryId(
+      schema,
+    );
+
+    if (registryId) {
+      const outgoingMessage = await registry.encode(registryId, bookCreate);
+      this.kafkaService.productMessage('book-create', outgoingMessage);
+    }
+
     const categoryRef = await CategoryModel.findById(bookCreate.category);
     if (!categoryRef) {
       throw new ApiError(404, 'Not found Category');
@@ -75,9 +102,18 @@ export class BookService implements IBookService {
 
     const book = await BookModel.create(newBook);
     const bookDto: IBookDto = {
-      ...book,
       id: book._id,
+      title: book.title,
+      image: book.image,
+      quantity: book.quantity,
+      price: book.price,
+      description: book.description,
+      author: book.author,
+      category: book.category,
+      isDelete: book.isDelete,
     };
+
+    console.log(bookDto);
 
     return bookDto;
   }
@@ -86,6 +122,17 @@ export class BookService implements IBookService {
     id: string,
     bookUpdateDto: BookCreateUpdateDto,
   ): Promise<IBookDto | null> {
+    const filePath = path.join(__dirname, '../avro/book-create.avsc');
+    const schema = readAVSC(filePath);
+    const registryId = await this.schemaRegistryService.getSchemaRegistryId(
+      schema,
+    );
+
+    if (registryId) {
+      const outgoingMessage = await registry.encode(registryId, bookUpdateDto);
+      this.kafkaService.productMessage('book-update', outgoingMessage);
+    }
+
     const currentBook: IBook | null = await BookModel.findById(id);
     if (!currentBook) {
       throw new ApiError(404, 'Not Found Book');
@@ -109,8 +156,15 @@ export class BookService implements IBookService {
     const updatedBook = await BookModel.findByIdAndUpdate(id, currentBook);
     if (updatedBook) {
       const bookDto: IBookDto = {
-        ...updatedBook,
         id: updatedBook._id,
+        title: updatedBook.title,
+        image: updatedBook.image,
+        quantity: updatedBook.quantity,
+        price: updatedBook.price,
+        description: updatedBook.description,
+        author: updatedBook.author,
+        category: updatedBook.category,
+        isDelete: updatedBook.isDelete,
       };
 
       return bookDto;
@@ -120,6 +174,16 @@ export class BookService implements IBookService {
   }
 
   async deleteBook(id: string): Promise<IBook | null> {
+    const filePath = path.join(__dirname, '../avro/book-delete.avsc');
+    const schema = readAVSC(filePath);
+    const registryId = await this.schemaRegistryService.getSchemaRegistryId(
+      schema,
+    );
+
+    if (registryId) {
+      const outgoingMessage = await registry.encode(registryId, { id });
+      this.kafkaService.productMessage('book-delete', outgoingMessage);
+    }
     const currentBook: IBook | null = await BookModel.findById(id);
     if (!currentBook) {
       throw new ApiError(401, 'Not found Book');
