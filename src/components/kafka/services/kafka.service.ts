@@ -3,33 +3,30 @@ import { Consumer, Kafka, Producer } from 'kafkajs';
 
 import logger from '../../../utils/logger';
 import { IKafkaService } from './kafka.interface.service';
+import dotenv from 'dotenv';
 
-require('dotenv').config();
-
+dotenv.config();
+const kafkaUrls = process.env.KAFKA_URL ? process.env.KAFKA_URL.split(',') : [];
 @injectable()
 export class KafkaService implements IKafkaService {
   private kafka: Kafka;
   private producer: Producer;
-  private consumer: Consumer;
 
   constructor() {
     this.kafka = new Kafka({
       clientId: 'book-service',
-      brokers: ['localhost:9092', 'localhost:9093'],
+      brokers: kafkaUrls,
     });
 
     this.producer = this.kafka.producer();
-    this.consumer = this.kafka.consumer({ groupId: 'kafka-consumer-group' });
   }
 
   async connect(): Promise<void> {
     await this.producer.connect();
-    await this.consumer.connect();
   }
 
   async disconnect(): Promise<void> {
     await this.producer.disconnect();
-    await this.consumer.disconnect();
   }
 
   async productMessage(topic: string, message: Object): Promise<void> {
@@ -40,19 +37,6 @@ export class KafkaService implements IKafkaService {
       });
     } catch (error) {
       logger.error('Send message error: ' + error);
-    }
-  }
-
-  async consumeMessage(topic: string): Promise<void> {
-    try {
-      await this.consumer.subscribe({ topic, fromBeginning: true });
-      await this.consumer.run({
-        eachMessage: async ({ message }) => {
-          logger.debug('Consume message: ' + message);
-        },
-      });
-    } catch (error) {
-      logger.error('Consume message error: ' + error);
     }
   }
 }

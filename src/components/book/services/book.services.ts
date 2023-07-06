@@ -12,11 +12,15 @@ import TYPES from '../../../constants/type';
 import { IKafkaService } from '../../kafka/services/kafka.interface.service';
 import { ISchemaRegistryService } from '../../schema-registry/services/schema-registry.interface.service';
 import { SchemaRegistry, readAVSC } from '@kafkajs/confluent-schema-registry';
-import fs from 'fs';
 import * as path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const schemaRegistryHost = process.env.SCHEMA_REGISTRY ?? '';
 
 const registry = new SchemaRegistry({
-  host: 'http://localhost:8081',
+  host: schemaRegistryHost,
 });
 
 @injectable()
@@ -26,7 +30,7 @@ export class BookService implements IBookService {
     @inject(TYPES.ISchemaRegistryService)
     private schemaRegistryService: ISchemaRegistryService,
   ) {
-    this.kafkaService.connect();
+    // this.kafkaService.connect();
   }
   async get(): Promise<IBook[]> {
     const books = await BookModel.find();
